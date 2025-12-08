@@ -3,43 +3,40 @@ package com.back.domain.post.post.controller;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
-import com.back.global.rsData.ForPostRsData;
 import com.back.global.rsData.RsData;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
-//@Controller
 @RestController
 @RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor
+@Tag(name = "ApiV1PostController", description = "API 글 컨트롤러")
 public class ApiV1PostController {
     private final PostService postService;
 
-//    @GetMapping("/api/v1/posts")
-//    @ResponseBody
     @GetMapping
     @Transactional(readOnly = true)
+    @Operation(summary = "다건 조회")
     public List<PostDto> getItems() {
         List<Post> items = postService.findAll();
 
         return items
                 .stream()
-                .map(PostDto::new)
+                .map(PostDto::new) // PostDto로 변환
                 .toList();
     }
 
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
+    @Operation(summary = "단건 조회")
     public PostDto getItem(@PathVariable int id) {
         Post post = postService.findById(id).get();
 
@@ -48,7 +45,8 @@ public class ApiV1PostController {
 
     @DeleteMapping("/{id}")
     @Transactional
-    public RsData<Void> delete(@PathVariable int id){
+    @Operation(summary = "삭제")
+    public RsData<Void> delete(@PathVariable int id) {
         Post post = postService.findById(id).get();
 
         postService.delete(post);
@@ -59,6 +57,7 @@ public class ApiV1PostController {
         );
     }
 
+
     record PostWriteReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
@@ -67,35 +66,18 @@ public class ApiV1PostController {
             @Size(min = 2, max = 5000)
             String content
     ) {
-
-    }
-
-    record PostWriteResBody(
-            long totalCount,
-            PostDto post
-    ) {
     }
 
     @PostMapping
     @Transactional
-    public RsData<PostWriteResBody> write(@Valid @RequestBody PostWriteReqBody reqBody){
+    @Operation(summary = "작성")
+    public RsData<PostDto> write(@Valid @RequestBody PostWriteReqBody reqBody) {
         Post post = postService.write(reqBody.title, reqBody.content);
 
-//        long totalCount = postService.count();
-
-//      List<Object> data = List.of(totalCount, new PostDto(post));
-//        PostWriteResBody data = new PostWriteResBody(
-//                totalCount,
-//                new PostDto(post)
-//        );
-
         return new RsData<>(
-                "200-1",
+                "201-1",
                 "%d번 글이 작성되었습니다.".formatted(post.getId()),
-                new PostWriteResBody(
-                        postService.count(),
-                        new PostDto(post)
-                )
+                new PostDto(post)
         );
     }
 
@@ -106,16 +88,16 @@ public class ApiV1PostController {
             @NotBlank
             @Size(min = 2, max = 5000)
             String content
-    ){
-
+    ) {
     }
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     @Transactional
+    @Operation(summary = "수정")
     public RsData<Void> modify(
             @PathVariable int id,
             @Valid @RequestBody PostModifyReqBody reqBody
-    ){
+    ) {
         Post post = postService.findById(id).get();
         postService.modify(post, reqBody.title, reqBody.content);
 
@@ -124,5 +106,4 @@ public class ApiV1PostController {
                 "%d번 글이 수정되었습니다.".formatted(post.getId())
         );
     }
-
 }
