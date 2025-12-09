@@ -39,8 +39,8 @@ public class ApiV1PostControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                        {
-                                           "title": "제목 new",
-                                           "content": "내용 new"
+                                           "title": "제목",
+                                           "content": "내용"
                                        }
                                        """)
                 )
